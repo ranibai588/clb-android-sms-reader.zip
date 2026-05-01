@@ -8,18 +8,18 @@ workflows:
       - name: Build APK
         script: |
           set -e
+          echo "=== Files Check ==="
+          pwd
+          ls -la
+
           echo "=== Gradle 8.3 Download ==="
-          curl -fL https://services.gradle.org/distributions/gradle-8.3-bin.zip -o /tmp/gradle-8.3.zip
-          unzip -q /tmp/gradle-8.3.zip -d /tmp/
+          curl -fL https://services.gradle.org/distributions/gradle-8.3-bin.zip -o /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /tmp/
 
-          echo "=== Wrapper Create ==="
-          /tmp/gradle-8.3/bin/gradle wrapper --gradle-version 8.3 --distribution-type bin
-          chmod +x gradlew
+          echo "=== Building APK ==="
+          /tmp/gradle-8.3/bin/gradle assembleDebug --no-daemon --stacktrace
 
-          echo "=== APK Build ==="
-          ./gradlew assembleDebug --no-daemon --stacktrace
-
-          echo "=== APK Ready ==="
+          echo "=== APK Location ==="
           find . -name "*.apk" -type f
     artifacts:
       - app/build/outputs/apk/debug/app-debug.apk
