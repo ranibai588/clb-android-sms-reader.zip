@@ -1,0 +1,191 @@
+package com.clb.smsreader;
+
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Switch;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * MainActivity — App ka main screen.
+ *
+ * Screen par kya dikhta hai:
+ * 1. WordPress Site URL field
+ * 2. Secret Key field (WordPress mein set karo)
+ * 3. ON/OFF switch
+ * 4. Save button
+ * 5. SMS log (last 30 SMS)
+ *
+ * Setup karne ke steps:
+ * 1. Apni WordPress site ka URL daalo (jaise https://aapkisite.com)
+ * 2. WordPress > CLB UPI Settings > Secret Key copy karke yahan paste karo
+ * 3. Switch ON karo
+ * 4. Save dabao
+ * 5. Done! Ab bank SMS automatically wallet credit karega
+ */
+public class MainActivity extends AppCompatActivity {
+
+    private static final int PERMISSION_REQUEST_CODE = 101;
+
+    private EditText etSiteUrl;
+    private EditText etSecretKey;
+    private Switch   swEnabled;
+    private TextView tvLog;
+    private TextView tvStatus;
+    private SharedPref pref;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        pref = new SharedPref(this);
+
+        etSiteUrl   = findViewById(R.id.et_site_url);
+        etSecretKey = findViewById(R.id.et_secret_key);
+        swEnabled   = findViewById(R.id.sw_enabled);
+        tvLog       = findViewById(R.id.tv_log);
+        tvStatus    = findViewById(R.id.tv_status);
+
+        Button btnSave      = findViewById(R.id.btn_save);
+        Button btnClearLog  = findViewById(R.id.btn_clear_log);
+        Button btnRefreshLog = findViewById(R.id.btn_refresh_log);
+
+        // Saved settings load karo
+        etSiteUrl.setText(pref.getSiteUrl());
+        etSecretKey.setText(pref.getSecretKey());
+        swEnabled.setChecked(pref.isEnabled());
+
+        updateStatus();
+        refreshLog();
+
+        // Save button
+        btnSave.setOnClickListener(v -> {
+            String url = etSiteUrl.getText().toString().trim();
+            String key = etSecretKey.getText().toString().trim();
+
+            if (url.isEmpty()) {
+                Toast.makeText(this, "Site URL daalna zaroori hai", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (key.isEmpty()) {
+                Toast.makeText(this, "Secret Key daalna zaroori hai", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            pref.saveSiteUrl(url);
+            pref.saveSecretKey(key);
+            pref.setEnabled(swEnabled.isChecked());
+
+            updateStatus();
+            Toast.makeText(this, "Settings save ho gayi! ✓", Toast.LENGTH_SHORT).show();
+        });
+
+        // Switch toggle
+        swEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            pref.setEnabled(isChecked);
+            updateStatus();
+        });
+
+        // Log buttons
+        btnClearLog.setOnClickListener(v -> {
+            pref.clearLog();
+            refreshLog();
+        });
+
+        btnRefreshLog.setOnClickListener(v -> refreshLog());
+
+        // SMS permissions maango
+        requestSmsPermissions();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshLog();
+    }
+
+    private void updateStatus() {
+        boolean enabled = swEnabled.isChecked();
+        String url = pref.getSiteUrl();
+
+        if (!enabled) {
+            tvStatus.setText("● Stopped — Switch ON karo");
+            tvStatus.setTextColor(0xFFFF5555);
+        } else if (url.isEmpty()) {
+            tvStatus.setText("● Site URL set karo");
+            tvStatus.setTextColor(0xFFFFAA00);
+        } else {
+            tvStatus.setText("● Active — SMS monitor ho raha hai");
+            tvStatus.setTextColor(0xFF00CC66);
+        }
+    }
+
+    private void refreshLog() {
+        tvLog.setText(pref.getLog());
+    }
+
+    private void requestSmsPermissions() {
+        List<String> needed = new ArrayList<>();
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS)
+                != PackageManager.PERMISSION_GRANTED) {
+            needed.add(Manifest.permission.RECEIVE_SMS);
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
+                != PackageManager.PERMISSION_GRANTED) {
+            needed.add(Manifest.permission.READ_SMS);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                needed.add(Manifest.permission.POST_NOTIFICATIONS);
+            }
+        }
+
+        if (!needed.isEmpty()) {
+            ActivityCompat.requestPermissions(this,
+                    needed.toArray(new String[0]),
+                    PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            boolean allGranted = true;
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    allGranted = false;
+                    break;
+                }
+            }
+
+            if (allGranted) {
+                Toast.makeText(this,
+                        "SMS permission mili — App ready hai! ✓",
+                        Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this,
+                        "SMS permission DENIED — App kaam nahi karega!\nSettings > Apps > CLB SMS Reader > Permissions",
+                        Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+}

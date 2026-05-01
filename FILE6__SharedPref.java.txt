@@ -1,0 +1,70 @@
+package com.clb.smsreader;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+
+/**
+ * SharedPref — App settings save/load karne ke liye.
+ * WordPress site URL aur Secret Key yahan store hoti hai.
+ */
+public class SharedPref {
+
+    private static final String PREF_NAME = "CLBSmsReaderPrefs";
+    private static final String KEY_SITE_URL   = "site_url";
+    private static final String KEY_SECRET_KEY = "secret_key";
+    private static final String KEY_ENABLED    = "sms_enabled";
+    private static final String KEY_LOG        = "sms_log";
+
+    private final SharedPreferences prefs;
+
+    public SharedPref(Context context) {
+        prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+    }
+
+    public void saveSiteUrl(String url) {
+        prefs.edit().putString(KEY_SITE_URL, url.trim()).apply();
+    }
+
+    public String getSiteUrl() {
+        return prefs.getString(KEY_SITE_URL, "");
+    }
+
+    public void saveSecretKey(String key) {
+        prefs.edit().putString(KEY_SECRET_KEY, key.trim()).apply();
+    }
+
+    public String getSecretKey() {
+        return prefs.getString(KEY_SECRET_KEY, "");
+    }
+
+    public void setEnabled(boolean enabled) {
+        prefs.edit().putBoolean(KEY_ENABLED, enabled).apply();
+    }
+
+    public boolean isEnabled() {
+        return prefs.getBoolean(KEY_ENABLED, false);
+    }
+
+    public void appendLog(String line) {
+        String existing = prefs.getString(KEY_LOG, "");
+        // Keep last 30 lines only
+        String[] lines = existing.split("\n");
+        StringBuilder sb = new StringBuilder();
+        int start = Math.max(0, lines.length - 29);
+        for (int i = start; i < lines.length; i++) {
+            if (!lines[i].isEmpty()) {
+                sb.append(lines[i]).append("\n");
+            }
+        }
+        sb.append(line);
+        prefs.edit().putString(KEY_LOG, sb.toString()).apply();
+    }
+
+    public String getLog() {
+        return prefs.getString(KEY_LOG, "(अभी कोई SMS नहीं आया)");
+    }
+
+    public void clearLog() {
+        prefs.edit().remove(KEY_LOG).apply();
+    }
+}

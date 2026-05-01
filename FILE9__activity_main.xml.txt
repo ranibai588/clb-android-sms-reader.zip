@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#1a1a2e"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="32dp">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="♟ CLB SMS Reader"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#00cc66"
+            android:gravity="center"
+            android:paddingTop="16dp"
+            android:paddingBottom="4dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Bank SMS → Wallet Auto-Credit"
+            android:textSize="14sp"
+            android:textColor="#aaaaaa"
+            android:gravity="center"
+            android:paddingBottom="20dp" />
+
+        <!-- Status Card -->
+        <TextView
+            android:id="@+id/tv_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="● Stopped"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:padding="12dp"
+            android:background="#0d0d1a"
+            android:textColor="#FF5555"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Settings Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#16213e"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚙ Settings"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#ffffff"
+                android:paddingBottom="12dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WordPress Site URL"
+                android:textSize="13sp"
+                android:textColor="#aaaaaa"
+                android:paddingBottom="4dp" />
+
+            <EditText
+                android:id="@+id/et_site_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="https://aapkisite.com"
+                android:inputType="textUri"
+                android:textColor="#ffffff"
+                android:textColorHint="#555577"
+                android:background="#0d0d1a"
+                android:padding="12dp"
+                android:layout_marginBottom="12dp"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Secret Key (WordPress > CLB UPI Settings)"
+                android:textSize="13sp"
+                android:textColor="#aaaaaa"
+                android:paddingBottom="4dp" />
+
+            <EditText
+                android:id="@+id/et_secret_key"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Secret Key paste karein"
+                android:inputType="textPassword"
+                android:textColor="#ffffff"
+                android:textColorHint="#555577"
+                android:background="#0d0d1a"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp"
+                android:textSize="14sp" />
+
+            <!-- Enable Switch -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="SMS Reader ON/OFF"
+                    android:textColor="#ffffff"
+                    android:textSize="15sp" />
+
+                <Switch
+                    android:id="@+id/sw_enabled"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:thumbTint="#00cc66"
+                    android:trackTint="#004422" />
+
+            </LinearLayout>
+
+            <!-- Save Button -->
+            <Button
+                android:id="@+id/btn_save"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="💾 SAVE SETTINGS"
+                android:textColor="#000000"
+                android:textStyle="bold"
+                android:backgroundTint="#00cc66"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
+        <!-- Log Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#16213e"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingBottom="10dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="📋 SMS Log"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#ffffff" />
+
+                <Button
+                    android:id="@+id/btn_refresh_log"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="↻"
+                    android:textColor="#00cc66"
+                    android:backgroundTint="#0d0d1a"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:textSize="18sp" />
+
+                <Button
+                    android:id="@+id/btn_clear_log"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="Clear"
+                    android:textColor="#ff5555"
+                    android:backgroundTint="#0d0d1a"
+                    android:textSize="12sp"
+                    android:layout_marginStart="6dp" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_log"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="(अभी कोई SMS नहीं आया)"
+                android:textColor="#aaaacc"
+                android:textSize="11sp"
+                android:fontFamily="monospace"
+                android:background="#0d0d1a"
+                android:padding="10dp"
+                android:minLines="6" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

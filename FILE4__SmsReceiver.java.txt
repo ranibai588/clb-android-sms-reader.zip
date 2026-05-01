@@ -1,0 +1,88 @@
+package com.clb.smsreader;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.telephony.SmsMessage;
+import android.util.Log;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/**
+ * SmsReceiver — Phone par aane wala har SMS yahan aata hai.
+ *
+ * Kaam kaise karta hai:
+ * 1. Bank SMS aata hai (jaise HDFC/SBI/Paytm UPI credited message)
+ * 2. SmsReceiver intercept karta hai
+ * 3. SMS body WordPress API ko bhejta hai (background thread mein)
+ * 4. WordPress server virtual account number dhundh ke wallet credit karta hai
+ *
+ * Koi external API nahi — sirf aapka apna WordPress server.
+ */
+public class SmsReceiver extends BroadcastReceiver {
+
+    private static final String TAG = "CLB_SmsReceiver";
+    private static final ExecutorService executor = Executors.newSingleThreadExecutor();
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        SharedPref pref = new SharedPref(context);
+
+        // App disabled hai to kuch mat karo
+        if (!pref.isEnabled()) {
+            Log.d(TAG, "SMS Reader disabled hai — skip");
+            return;
+        }
+
+        Bundle bundle = intent.getExtras();
+        if (bundle == null) return;
+
+        Object[] pdus = (Object[]) bundle.get("pdus");
+        if (pdus == null || pdus.length == 0) return;
+
+        String format = bundle.getString("format");
+
+        // Saare SMS parts combine karo (long SMS ke liye)
+        StringBuilder fullBody = new StringBuilder();
+        String sender = "";
+
+        for (Object pdu : pdus) {
+            SmsMessage sms;
+            if (format != null) {
+                sms = SmsMessage.createFromPdu((byte[]) pdu, format);
+            } else {
+                sms = SmsMessage.createFromPdu((byte[]) pdu);
+            }
+            if (sms == null) continue;
+
+            sender = sms.getDisplayOriginatingAddress();
+            fullBody.append(sms.getMessageBody());
+        }
+
+        final String finalSender = sender;
+        final String finalBody   = fullBody.toString();
+
+        Log.d(TAG, "SMS aaya — From: " + finalSender + " | Body: " + finalBody);
+
+        // Log entry banao
+        String time = new SimpleDateFormat("dd/MM HH:mm", Locale.getDefault()).format(new Date());
+        String logLine = "[" + time + "] " + finalSender + ": " + finalBody.substring(0, Math.min(60, finalBody.length())) + "...";
+        pref.appendLog(logLine);
+
+        // Background thread mein API call karo (UI block na ho)
+        executor.execute(() -> {
+            ApiService api = new ApiService(pref);
+            boolean success = api.sendSmsToWordPress(finalSender, finalBody);
+
+            String resultLog = "[" + time + "] " + (success ? "✓ Wallet credited" : "✗ API fail");
+            pref.appendLog(resultLog);
+
+            Log.d(TAG, "API result: " + (success ? "SUCCESS" : "FAILED"));
+        });
+    }
+}
